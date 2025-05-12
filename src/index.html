@@ -1,0 +1,221 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formular: Kontakte für myApps senden</title>
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.22.9/babel.min.js"></script>
+  <link href="/styles.css" rel="stylesheet">
+  <style>
+    .contact-form {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .contact-form h1 {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+    }
+    .contact-form h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 1.5rem 0 1rem;
+    }
+    .contact-form div {
+      margin-bottom: 1rem;
+    }
+    .contact-form label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    .contact-form input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 0.25rem;
+    }
+    .contact-form button {
+      width: 100%;
+      padding: 0.5rem;
+      background: #3b82f6;
+      color: white;
+      border-radius: 0.25rem;
+      cursor: pointer;
+    }
+    .contact-form button:hover {
+      background: #2563eb;
+    }
+    .contact-form .error {
+      color: red;
+      margin-bottom: 1rem;
+    }
+  </style>
+  <script src="/env.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+  <div id="root"></div>
+  <script type="text/babel">
+    try {
+      const { createRoot } = ReactDOM;
+      function ContactForm() {
+        const [formData, setFormData] = React.useState({
+          givenname: '',
+          sn: '',
+          company: '',
+          displayname: '',
+          url: '',
+          title: '',
+          position: '',
+          department: '',
+          description: '',
+          email: '',
+          telephonenumber: '',
+          mobile: '',
+          homephone: '',
+          street: '',
+          postalcode: '',
+          city: '',
+          state: '',
+          country: ''
+        });
+        const [error, setError] = React.useState('');
+
+        const handleChange = (e) => {
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+          if (e.target.name === 'displayname' && e.target.value) {
+            setError('');
+          }
+        };
+
+        const handleSubmit = () => {
+          if (!formData.displayname) {
+            setError('Anzeigename ist erforderlich.');
+            return;
+          }
+
+          const receiverEmail = window.ENV?.RECEIVER_EMAIL && window.ENV.RECEIVER_EMAIL !== '' 
+            ? window.ENV.RECEIVER_EMAIL 
+            : 'dummy@example.com';
+          const subject = encodeURIComponent(
+            `Kontakt hinzufügen: ${
+              formData.displayname || `${formData.givenname} ${formData.sn}`.trim() || 'Neuer Kontakt'
+            }`
+          );
+          const body = encodeURIComponent(
+            `${formData.givenname};${formData.sn};${formData.company};${formData.displayname};${formData.email};` +
+            `${formData.telephonenumber};${formData.mobile};${formData.homephone};;${formData.city};${formData.street};` +
+            `${formData.postalcode};${formData.state};${formData.country};;;;;;${formData.title};${formData.position};` +
+            `${formData.department};${formData.description};;;${formData.url};;`
+          );
+          window.location.href = `mailto:${receiverEmail}?subject=${subject}&body=${body}`;
+        };
+
+        const renderInput = (label, name, placeholder = '') => (
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-1">{label}</label>
+            <input
+              type="text"
+              name={name}
+              value={formData[name]}
+              onChange={handleChange}
+              placeholder={placeholder}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        );
+
+        return (
+          <div className="contact-form">
+            <h1>Kontakt:</h1>
+            {error && <p className="error">{error}</p>}
+
+            <h2>Bezeichnung:</h2>
+            {renderInput('Vorname:', 'givenname')}
+            {renderInput('Nachname:', 'sn')}
+            {renderInput('Firma:', 'company')}
+            {renderInput('Anzeigename:', 'displayname', 'Erforderlich')}
+            {renderInput('Webseite:', 'url')}
+
+            <h2>Informationen:</h2>
+            {renderInput('Titel:', 'title')}
+            {renderInput('Position:', 'position')}
+            {renderInput('Abteilung:', 'department')}
+            {renderInput('Beschreibung:', 'description')}
+
+            <h2>Kontaktmöglichkeiten:</h2>
+            {renderInput('E-Mail:', 'email')}
+            {renderInput('Telefonnummer:', 'telephonenumber')}
+            {renderInput('Handynummer:', 'mobile')}
+            {renderInput('Private Telefonnummer:', 'homephone')}
+
+            <h2>Adresse:</h2>
+            {renderInput('Straße:', 'street')}
+            {renderInput('PLZ:', 'postalcode')}
+            {renderInput('Ort:', 'city')}
+            {renderInput('Bundesland:', 'state')}
+            {renderInput('Land:', 'country')}
+
+            <button
+              onClick={handleSubmit}
+              className="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+            >
+              Senden
+            </button>
+          </div>
+        );
+      }
+
+      const root = createRoot(document.getElementById('root'));
+      root.render(<ContactForm />);
+    } catch (e) {
+      console.error('Script error details:', e);
+    }
+  </script>
+</body>
+</html>
