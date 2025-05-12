@@ -1,0 +1,10 @@
+services:
+  contact-form:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - RECEIVER_EMAIL=your-email@example.com
+    container_name: add-contacts-form-myapps-container
