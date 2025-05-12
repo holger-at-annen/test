@@ -1,10 +1,21 @@
 services:
-  contact-form:
+  add-contacts-form:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - "8080:80"
+    expose:
+      - "80"
     environment:
-      - RECEIVER_EMAIL=your-email@example.com
+      - RECEIVER_EMAIL=${RECEIVER_EMAIL:-dummy@example.com}
+      - SERVICE_FQDN_ADD_CONTACTS_FORM_80=${SERVICE_FQDN_ADD_CONTACTS_FORM_80:-http://add-contacts-form.local}
     container_name: add-contacts-form-myapps-container
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.add-contacts-form.rule=Host(`${SERVICE_FQDN_ADD_CONTACTS_FORM_80:-add-contacts-form.local}`)"
+      - "traefik.http.routers.add-contacts-form.entryPoints=http"
+    networks:
+      - coolify
+networks:
+  coolify:
+    name: coolify
+    external: true
