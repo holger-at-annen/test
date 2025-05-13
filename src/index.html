@@ -347,7 +347,9 @@
         };
 
         const handleSend = () => {
-          const receiverEmail = 'receiver@example.com';
+          const receiverEmail = window.ENV?.RECEIVER_EMAIL && window.ENV.RECEIVER_EMAIL !== '' 
+            ? window.ENV.RECEIVER_EMAIL 
+            : 'receiver@example.com';
           const subject = encodeURIComponent('Kontakte');
           const body = contacts.map(contact => {
             return [
@@ -393,7 +395,6 @@
             <div className="contact-form">
               <div className="mb-4">
                 <h1>Kontakt:</h1>
-                {error && <p className="error-message">{error}</p>}
                 <div style={{ marginTop: '0.5rem' }}>
                   <button
                     onClick={handleClearForm}
@@ -402,6 +403,7 @@
                     Neu
                   </button>
                 </div>
+                {error && <p className="error-message">{error}</p>}
               </div>
               <div className="form-scrollable">
                 <h2>Bezeichnung:</h2>
