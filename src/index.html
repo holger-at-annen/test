@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Final Layout with Updated Functionality</title>
+  <title>myApps Kontakte senden</title>
   <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.22.9/babel.min.js"></script>
@@ -357,11 +357,7 @@
           const receiverEmail = window.ENV?.RECEIVER_EMAIL && window.ENV.RECEIVER_EMAIL !== '' 
             ? window.ENV.RECEIVER_EMAIL 
             : 'dummy@example.com';
-          if (contacts.length === 1) {
-            const subject = encodeURIComponent('Kontakt hinzufügen: ${contact[0].displayname}');
-          } else {
-            const subject = encodeURIComponent('Kontakt hinzufügen: Mehrere Kontakte');
-          }
+          const subject = encodeURIComponent('Kontakte hinzufügen: Mehrere Kontakte');
           const body = encodeURIComponent(
             contacts.map(contact =>
               `${contact.givenname};${contact.sn};${contact.company};${contact.displayname};${contact.email};` +
