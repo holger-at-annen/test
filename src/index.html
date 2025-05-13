@@ -88,7 +88,7 @@
     }
     .contact-list li {
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       padding: 0.5rem 0;
       border-bottom: 1px solid #eee;
     }
@@ -97,25 +97,28 @@
     }
     .contact-list li input[type="checkbox"] {
       margin: 0 0.5rem 0 0;
+      width: 16px;
+      height: 16px;
     }
     .contact-list li span {
       font-size: 1rem;
+      line-height: 1rem;
       margin: 0;
+      flex-grow: 1;
     }
     .edit-icon-container {
-      width: 24px;
-      height: 24px;
+      width: 16px;
+      height: 16px;
       margin-left: 0.5rem;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
     }
     .edit-icon {
-      width: 24px;
-      height: 24px;
-      min-width: 24px;
-      min-height: 24px;
-      transform: none;
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      min-height: 16px;
       cursor: pointer;
     }
     .btn-primary {
@@ -222,6 +225,7 @@
             const computedStyle = getComputedStyle(deleteButton);
             console.log('Auswahl löschen button width:', rect.width);
             console.log('Auswahl löschen button margin-left:', computedStyle.marginLeft);
+            console.log('Auswahl löschen button right:', rect.right);
           }
           const contactForm = document.querySelector('.contact-form');
           if (contactForm) {
@@ -234,6 +238,35 @@
           if (contactList) {
             const rect = contactList.getBoundingClientRect();
             console.log('Contact-list width:', rect.width);
+            console.log('Contact-list right:', rect.right);
+          }
+          const buttonsRow = document.querySelector('.contact-list .flex.justify-between');
+          if (buttonsRow) {
+            const rect = buttonsRow.getBoundingClientRect();
+            console.log('Buttons row width:', rect.width);
+            console.log('Buttons row right:', rect.right);
+          }
+          const listHeader = document.querySelector('.contact-list h1');
+          if (listHeader) {
+            const rect = listHeader.getBoundingClientRect();
+            console.log('Liste von Kontakten top:', rect.top);
+            console.log('Liste von Kontakten bottom:', rect.bottom);
+          }
+          const buttonsRowDiv = document.querySelector('.contact-list .flex.justify-between');
+          if (buttonsRowDiv) {
+            const rect = buttonsRowDiv.getBoundingClientRect();
+            console.log('Buttons row top:', rect.top);
+          }
+          const formHeader = document.querySelector('.contact-form h1');
+          if (formHeader) {
+            const rect = formHeader.getBoundingClientRect();
+            console.log('Kontakt: top:', rect.top);
+            console.log('Kontakt: bottom:', rect.bottom);
+          }
+          const neuButtonDiv = document.querySelector('.contact-form button.btn-secondary');
+          if (neuButtonDiv) {
+            const rect = neuButtonDiv.getBoundingClientRect();
+            console.log('Neu button top:', rect.top);
           }
         }, [contacts, formData]);
 
@@ -397,30 +430,28 @@
             <div className="contact-list">
               <div className="mb-4">
                 <h1>Liste von Kontakten</h1>
-                <div style={{ marginTop: '24px' }}>
-                  <div className="flex justify-between items-center">
-                    <button
-                      onClick={handleSelectAll}
-                      className="btn-secondary"
-                      disabled={contacts.length === 0}
-                    >
-                      {selectedContacts.length === contacts.length && contacts.length > 0 ? 'Alle abwählen' : 'Alle auswählen'}
-                    </button>
-                    <div style={{ flexGrow: 1 }}></div>
-                    <button
-                      onClick={handleDeleteSelected}
-                      className="btn-primary"
-                      disabled={selectedContacts.length === 0}
-                    >
-                      Auswahl löschen
-                    </button>
-                  </div>
+                <div className="flex justify-between items-center w-full" style={{ marginTop: '0.5rem' }}>
+                  <button
+                    onClick={handleSelectAll}
+                    className="btn-secondary"
+                    disabled={contacts.length === 0}
+                    style={{ marginRight: '1rem' }}
+                  >
+                    {selectedContacts.length === contacts.length && contacts.length > 0 ? 'Alle abwählen' : 'Alle auswählen'}
+                  </button>
+                  <button
+                    onClick={handleDeleteSelected}
+                    className="btn-primary"
+                    disabled={selectedContacts.length === 0}
+                  >
+                    Auswahl löschen
+                  </button>
                 </div>
               </div>
               <div className="list-scrollable">
                 <ul>
                   {contacts.map(contact => (
-                    <li key={contact.id} className="flex items-center">
+                    <li key={contact.id} className="flex items-end">
                       <input
                         type="checkbox"
                         checked={selectedContacts.includes(contact.id)}
