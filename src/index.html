@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kontaktformular</title>
-  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/babel-standalone@7.22.9/babel.min.js"></script>
+  <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.22.9/babel.min.js"></script>
   <link href="/styles.css" rel="stylesheet">
   <style>
     .contact-form {
@@ -47,14 +47,14 @@
       border: 1px solid #ccc;
       border-radius: 0.25rem;
     }
-    .contact-form button, .contact-list button {
-      padding: 0.5rem 1rem;
+    .contact-form button {
+      padding: 0.5rem;
       background: #3b82f6;
       color: white;
       border-radius: 0.25rem;
       cursor: pointer;
     }
-    .contact-form button:hover, .contact-list button:hover {
+    .contact-form button:hover {
       background: #2563eb;
     }
     .contact-form .error {
@@ -82,14 +82,10 @@
   <script src="/env.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-  <div class="flex flex-col md:flex-row gap-4 w-full max-w-7xl">
-    <div id="form-root" class="flex-1"></div>
-    <div id="list-root" class="flex-1 md:max-w-md"></div>
-  </div>
+  <div id="root" class="flex flex-col md:flex-row gap-4 w-full max-w-7xl"></div>
   <script type="text/babel">
     try {
       const { createRoot } = ReactDOM;
-
       function ContactForm() {
         const initialFormData = {
           givenname: '',
@@ -118,6 +114,12 @@
         const [editingContactId, setEditingContactId] = React.useState(null);
         const [previousFormData, setPreviousFormData] = React.useState(null);
 
+        React.useEffect(() => {
+          console.log('Component mounted. Contacts:', contacts);
+          console.log('Form data:', formData);
+          console.log('Environment:', window.ENV);
+        }, [contacts, formData]);
+
         const handleChange = (e) => {
           setFormData({ ...formData, [e.target.name]: e.target.value });
           if (e.target.name === 'displayname' && e.target.value) {
@@ -126,6 +128,7 @@
         };
 
         const handleClearForm = () => {
+          console.log('Clearing form');
           setFormData(initialFormData);
           setError('');
           setEditingContactId(null);
@@ -135,20 +138,20 @@
         const handleAddToList = () => {
           if (!formData.displayname) {
             setError('Anzeigename ist erforderlich.');
+            console.log('Error: Displayname required');
             return;
           }
 
           if (editingContactId) {
-            // Update existing contact
+            console.log('Updating contact ID:', editingContactId);
             setContacts(contacts.map(contact =>
               contact.id === editingContactId ? { ...formData, id: editingContactId } : contact
             ));
-            // Restore previous form state
             setFormData(previousFormData || initialFormData);
             setEditingContactId(null);
             setPreviousFormData(null);
           } else {
-            // Add new contact
+            console.log('Adding new contact');
             const newContact = { ...formData, id: Date.now() };
             setContacts([...contacts, newContact]);
             setFormData(initialFormData);
@@ -157,15 +160,15 @@
         };
 
         const handleEditContact = (contact) => {
-          // Save current form state
+          console.log('Editing contact ID:', contact.id);
           setPreviousFormData({ ...formData });
-          // Load contact data into form
           setFormData(contact);
           setEditingContactId(contact.id);
           setError('');
         };
 
         const handleSelectContact = (contactId) => {
+          console.log('Selecting contact ID:', contactId);
           setSelectedContacts(prev =>
             prev.includes(contactId)
               ? prev.filter(id => id !== contactId)
@@ -173,7 +176,17 @@
           );
         };
 
+        const handleSelectAll = () => {
+          console.log('Toggling select all');
+          if (selectedContacts.length === contacts.length) {
+            setSelectedContacts([]);
+          } else {
+            setSelectedContacts(contacts.map(contact => contact.id));
+          }
+        };
+
         const handleDeleteSelected = () => {
+          console.log('Deleting selected contacts:', selectedContacts);
           setContacts(contacts.filter(contact => !selectedContacts.includes(contact.id)));
           setSelectedContacts([]);
         };
@@ -181,9 +194,11 @@
         const handleSubmit = () => {
           if (contacts.length === 0) {
             setError('Keine Kontakte zum Senden.');
+            console.log('Error: No contacts to send');
             return;
           }
 
+          console.log('Sending contacts:', contacts);
           const receiverEmail = window.ENV?.RECEIVER_EMAIL && window.ENV.RECEIVER_EMAIL !== '' 
             ? window.ENV.RECEIVER_EMAIL 
             : 'dummy@example.com';
@@ -220,7 +235,7 @@
                 <h1>Kontakt:</h1>
                 <button
                   onClick={handleClearForm}
-                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-3 rounded-lg"
+                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-6 rounded-lg"
                 >
                   Neu
                 </button>
@@ -260,9 +275,18 @@
                 {editingContactId ? 'Änderung speichern' : 'Zur Liste hinzufügen'}
               </button>
             </div>
-            <div className="contact-list mt-4 md:mt-0">
+            <div className="contact-list">
               <div className="flex justify-between items-center mb-4">
-                <h1>Liste von Kontakten</h1>
+                <div className="flex items-center">
+                  <h1>Liste von Kontakten</h1>
+                  <button
+                    onClick={handleSelectAll}
+                    className="ml-4 bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded-lg"
+                    disabled={contacts.length === 0}
+                  >
+                    Alle auswählen
+                  </button>
+                </div>
                 <button
                   onClick={handleDeleteSelected}
                   className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-lg"
@@ -282,7 +306,7 @@
                     />
                     <span>{contact.displayname}</span>
                     <svg
-                      className="edit-icon w-5 h-5 text-blue-500"
+                      className="edit-icon w-4 h-4 text-blue-500"
                       onClick={() => handleEditContact(contact)}
                       fill="none"
                       stroke="currentColor"
@@ -311,11 +335,11 @@
         );
       }
 
-      const formRoot = createRoot(document.getElementById('form-root'));
-      const listRoot = createRoot(document.getElementById('list-root'));
-      formRoot.render(<ContactForm />);
+      const root = createRoot(document.getElementById('root'));
+      root.render(<ContactForm />);
     } catch (e) {
       console.error('Script error details:', e);
+      document.body.innerHTML = '<h1>Error loading application. Check console for details.</h1>';
     }
   </script>
 </body>
