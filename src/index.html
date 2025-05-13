@@ -118,16 +118,18 @@
       flex-grow: 1;
     }
     .edit-icon-container {
-      width: 16px;
-      height: 16px;
+      width: 24px;
+      height: 24px;
       margin-left: 0.5rem;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .edit-icon {
-      width: 16px;
-      height: 16px;
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      min-height: 20px;
       cursor: pointer;
     }
     .btn-primary {
@@ -171,23 +173,28 @@
       align-items: center;
     }
   </style>
+  <script src="/env.js"></script>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
     try {
       const { createRoot } = ReactDOM;
-      function InteractiveLayout() {
+      function ContactForm() {
         const initialFormData = {
           givenname: '',
           sn: '',
+          company: '',
           displayname: '',
+          url: '',
           title: '',
           position: '',
           department: '',
+          description: '',
           email: '',
           telephonenumber: '',
           mobile: '',
+          homephone: '',
           street: '',
           postalcode: '',
           city: '',
@@ -195,14 +202,17 @@
           country: ''
         };
         const [formData, setFormData] = React.useState(initialFormData);
+        const [error, setError] = React.useState('');
         const [contacts, setContacts] = React.useState([]);
         const [selectedContacts, setSelectedContacts] = React.useState([]);
         const [editingContactId, setEditingContactId] = React.useState(null);
-        const [errorMessage, setErrorMessage] = React.useState('');
+        const [previousFormData, setPreviousFormData] = React.useState(null);
 
         React.useEffect(() => {
+          console.log('Component mounted. Contacts:', contacts);
+          console.log('Form data:', formData);
+          console.log('Environment:', window.ENV);
           console.log('Viewport width:', window.innerWidth);
-          console.log('Viewport height:', window.innerHeight);
           const rootDiv = document.getElementById('root');
           if (rootDiv) {
             const rect = rootDiv.getBoundingClientRect();
@@ -228,65 +238,92 @@
               contactFormHeight: contactFormDiv.getBoundingClientRect().height,
               contactListHeight: contactListDiv.getBoundingClientRect().height
             });
+            console.log('Contact-form width:', contactFormDiv.getBoundingClientRect().width);
+            console.log('Contact-list width:', contactListDiv.getBoundingClientRect().width);
           }
-        }, [contacts]);
+          const listHeader = document.querySelector('.contact-list h1');
+          if (listHeader) {
+            const rect = listHeader.getBoundingClientRect();
+            console.log('Liste von Kontakten top:', rect.top);
+          }
+          const formHeader = document.querySelector('.contact-form h1');
+          if (formHeader) {
+            const rect = formHeader.getBoundingClientRect();
+            console.log('Kontakt: top:', rect.top);
+          }
+        }, [contacts, formData]);
 
         const handleChange = (e) => {
-          const { name, value } = e.target;
-          setFormData({ ...formData, [name]: value });
-          if (name === 'displayname' && errorMessage) {
-            setErrorMessage('');
+          setFormData({ ...formData, [e.target.name]: e.target.value });
+          if (e.target.name === 'displayname' && e.target.value) {
+            setError('');
           }
         };
 
         const handleClearForm = () => {
+          console.log('Clearing form');
           setFormData(initialFormData);
+          setError('');
           setEditingContactId(null);
-          setErrorMessage('');
+          setPreviousFormData(null);
         };
 
         const handleAddToList = () => {
           if (!formData.displayname) {
-            setErrorMessage('Anzeigename ist erforderlich.');
+            setError('Anzeigename ist erforderlich.');
+            console.log('Error: Displayname required');
             return;
           }
+
           if (editingContactId) {
+            console.log('Updating contact ID:', editingContactId);
             setContacts(contacts.map(contact =>
               contact.id === editingContactId ? { ...formData, id: editingContactId } : contact
             ));
+            setFormData(previousFormData || initialFormData);
             setEditingContactId(null);
+            setPreviousFormData(null);
           } else {
+            console.log('Adding new contact');
             const newContact = { ...formData, id: Date.now() };
             setContacts([...contacts, newContact]);
+            setFormData(initialFormData);
           }
-          setFormData(initialFormData);
-          setErrorMessage('');
+          setError('');
         };
 
         const handleAddToListWithoutClear = () => {
           if (!formData.displayname) {
-            setErrorMessage('Anzeigename ist erforderlich.');
+            setError('Anzeigename ist erforderlich.');
+            console.log('Error: Displayname required');
             return;
           }
+
           if (editingContactId) {
+            console.log('Updating contact ID:', editingContactId);
             setContacts(contacts.map(contact =>
               contact.id === editingContactId ? { ...formData, id: editingContactId } : contact
             ));
             setEditingContactId(null);
+            setPreviousFormData(null);
           } else {
+            console.log('Adding new contact');
             const newContact = { ...formData, id: Date.now() };
             setContacts([...contacts, newContact]);
           }
-          setErrorMessage('');
+          setError('');
         };
 
         const handleEditContact = (contact) => {
+          console.log('Editing contact ID:', contact.id);
+          setPreviousFormData({ ...formData });
           setFormData(contact);
           setEditingContactId(contact.id);
-          setErrorMessage('');
+          setError('');
         };
 
         const handleSelectContact = (contactId) => {
+          console.log('Selecting contact ID:', contactId);
           setSelectedContacts(prev =>
             prev.includes(contactId)
               ? prev.filter(id => id !== contactId)
@@ -295,6 +332,7 @@
         };
 
         const handleSelectAll = () => {
+          console.log('Toggling select all');
           if (selectedContacts.length === contacts.length) {
             setSelectedContacts([]);
           } else {
@@ -303,12 +341,13 @@
         };
 
         const handleDeleteSelected = () => {
+          console.log('Deleting selected contacts:', selectedContacts);
           setContacts(contacts.filter(contact => !selectedContacts.includes(contact.id)));
           setSelectedContacts([]);
         };
 
         const handleSend = () => {
-          const receiverEmail = 'receiver@example.com'; // Placeholder for process.env.RECEIVER_EMAIL
+          const receiverEmail = 'receiver@example.com';
           const subject = encodeURIComponent('Kontakte');
           const body = contacts.map(contact => {
             return [
@@ -335,19 +374,17 @@
           console.log('Opening mailto link:', mailtoLink);
         };
 
-        const renderInput = (label, name, value) => (
+        const renderInput = (label, name, placeholder = '') => (
           <div className="form-group">
             <label>{label}</label>
             <input
               type="text"
               name={name}
-              value={value}
+              value={formData[name]}
               onChange={handleChange}
+              placeholder={placeholder}
               className="w-full px-3 py-2 border rounded-lg"
             />
-            {name === 'displayname' && errorMessage && (
-              <div className="error-message">{errorMessage}</div>
-            )}
           </div>
         );
 
@@ -356,37 +393,54 @@
             <div className="contact-form">
               <div className="mb-4">
                 <h1>Kontakt:</h1>
+                {error && <p className="error-message">{error}</p>}
                 <div style={{ marginTop: '0.5rem' }}>
-                  <button onClick={handleClearForm} className="btn-secondary btn-full">
+                  <button
+                    onClick={handleClearForm}
+                    className="btn-secondary btn-full"
+                  >
                     Neu
                   </button>
                 </div>
               </div>
               <div className="form-scrollable">
                 <h2>Bezeichnung:</h2>
-                {renderInput('Vorname:', 'givenname', formData.givenname)}
-                {renderInput('Nachname:', 'sn', formData.sn)}
-                {renderInput('Anzeigename:', 'displayname', formData.displayname)}
+                {renderInput('Vorname:', 'givenname')}
+                {renderInput('Nachname:', 'sn')}
+                {renderInput('Firma:', 'company')}
+                {renderInput('Anzeigename:', 'displayname', 'Erforderlich')}
+                {renderInput('Webseite:', 'url')}
+
                 <h2>Informationen:</h2>
-                {renderInput('Titel:', 'title', formData.title)}
-                {renderInput('Position:', 'position', formData.position)}
-                {renderInput('Abteilung:', 'department', formData.department)}
+                {renderInput('Titel:', 'title')}
+                {renderInput('Position:', 'position')}
+                {renderInput('Abteilung:', 'department')}
+                {renderInput('Beschreibung:', 'description')}
+
                 <h2>Kontaktmöglichkeiten:</h2>
-                {renderInput('E-Mail:', 'email', formData.email)}
-                {renderInput('Telefonnummer:', 'telephonenumber', formData.telephonenumber)}
-                {renderInput('Handynummer:', 'mobile', formData.mobile)}
+                {renderInput('E-Mail:', 'email')}
+                {renderInput('Telefonnummer:', 'telephonenumber')}
+                {renderInput('Handynummer:', 'mobile')}
+                {renderInput('Private Telefonnummer:', 'homephone')}
+
                 <h2>Adresse:</h2>
-                {renderInput('Straße:', 'street', formData.street)}
-                {renderInput('PLZ:', 'postalcode', formData.postalcode)}
-                {renderInput('Ort:', 'city', formData.city)}
-                {renderInput('Bundesland:', 'state', formData.state)}
-                {renderInput('Land:', 'country', formData.country)}
+                {renderInput('Straße:', 'street')}
+                {renderInput('PLZ:', 'postalcode')}
+                {renderInput('Ort:', 'city')}
+                {renderInput('Bundesland:', 'state')}
+                {renderInput('Land:', 'country')}
               </div>
-              <div className="mt-4 flex flex-col gap-2">
-                <button onClick={handleAddToListWithoutClear} className="btn-primary btn-full">
+              <div className="mt-4 flex flex-col" style={{ gap: '0.5rem' }}>
+                <button
+                  onClick={handleAddToListWithoutClear}
+                  className="btn-primary btn-full"
+                >
                   Zur Liste hinzufügen ohne löschen
                 </button>
-                <button onClick={handleAddToList} className="btn-primary btn-full">
+                <button
+                  onClick={handleAddToList}
+                  className="btn-primary btn-full"
+                >
                   {editingContactId ? 'Änderung speichern' : 'Zur Liste hinzufügen'}
                 </button>
               </div>
@@ -414,11 +468,12 @@
               <div className="list-scrollable">
                 <ul>
                   {contacts.map(contact => (
-                    <li key={contact.id}>
+                    <li key={contact.id} className="flex items-center">
                       <input
                         type="checkbox"
                         checked={selectedContacts.includes(contact.id)}
                         onChange={() => handleSelectContact(contact.id)}
+                        className="mr-2"
                       />
                       <span>{contact.displayname}</span>
                       <div className="edit-icon-container">
@@ -455,7 +510,7 @@
       }
 
       const root = createRoot(document.getElementById('root'));
-      root.render(<InteractiveLayout />);
+      root.render(<ContactForm />);
     } catch (e) {
       console.error('Script error details:', e);
       document.body.innerHTML = '<h1>Error loading application. Check console for details.</h1>';
