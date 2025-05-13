@@ -15,24 +15,28 @@
       border-radius: 0.5rem;
       max-width: 600px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      min-height: calc(100vh - 2rem);
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      flex: 1;
+      box-sizing: border-box;
     }
     .contact-list {
       background: white;
       padding: 2rem;
       border-radius: 0.5rem;
-      max-width: 400px;
+      max-width: 500px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      min-height: calc(100vh - 2rem);
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      flex: 1;
+      box-sizing: border-box;
     }
     .contact-form h1, .contact-list h1 {
       font-size: 1.5rem;
       font-weight: bold;
-      margin-bottom: 1.5rem;
+      margin-bottom: 0;
     }
     .contact-form h2 {
       font-size: 1.25rem;
@@ -49,19 +53,25 @@
     }
     .contact-form input {
       width: 100%;
+      max-width: 100%;
       padding: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 0.25rem;
+      box-sizing: border-box;
     }
     .form-scrollable {
       flex: 1;
       overflow-y: auto;
-      min-height: 144px; /* ~3 rows at 48px each */
+      overflow-x: hidden;
+      min-height: 144px;
+      min-width: 20ch;
+      width: 100%;
+      max-width: 100%;
     }
     .list-scrollable {
       flex: 1;
       overflow-y: auto;
-      min-height: 120px; /* ~3 rows at 40px each */
+      min-height: 120px;
     }
     .contact-form button {
       padding: 0.5rem;
@@ -85,15 +95,36 @@
     .contact-list li:last-child {
       border-bottom: none;
     }
-    .contact-list .edit-icon {
+    .contact-list li input[type="checkbox"] {
+      margin: 0 0.5rem 0 0;
+    }
+    .contact-list li span {
+      font-size: 1rem;
+      margin: 0;
+    }
+    .edit-icon-container {
+      width: 24px;
+      height: 24px;
+      margin-left: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .edit-icon {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      min-height: 24px;
+      transform: none;
       cursor: pointer;
-      margin-left: 1rem;
     }
     .btn-primary {
       background: #3b82f6;
       color: white;
       padding: 0.5rem 1.5rem;
       border-radius: 0.25rem;
+      flex-shrink: 0;
+      min-width: 0;
     }
     .btn-primary:hover {
       background: #2563eb;
@@ -107,6 +138,8 @@
       color: white;
       padding: 0.5rem 1.5rem;
       border-radius: 0.25rem;
+      flex-shrink: 0;
+      min-width: 0;
     }
     .btn-secondary:hover {
       background: #16a34a;
@@ -115,11 +148,15 @@
       background: #9ca3af;
       cursor: not-allowed;
     }
+    .btn-full {
+      width: 100%;
+      box-sizing: border-box;
+    }
   </style>
   <script src="/env.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
-  <div id="root" class="flex flex-col md:flex-row gap-4 w-full max-w-7xl"></div>
+  <div id="root" class="flex flex-row gap-4 w-full max-w-7xl" style="display: flex; flex-direction: row;"></div>
   <script type="text/babel">
     try {
       const { createRoot } = ReactDOM;
@@ -155,6 +192,49 @@
           console.log('Component mounted. Contacts:', contacts);
           console.log('Form data:', formData);
           console.log('Environment:', window.ENV);
+          console.log('Viewport width:', window.innerWidth);
+          const neuButton = document.querySelector('.contact-form button.btn-secondary');
+          if (neuButton) {
+            const rect = neuButton.getBoundingClientRect();
+            const computedStyle = getComputedStyle(neuButton);
+            console.log('Neu button width:', rect.width);
+            console.log('Neu button margin-left:', computedStyle.marginLeft);
+            console.log('Neu button padding-left:', computedStyle.paddingLeft);
+          }
+          const addButton = document.querySelector('.contact-form button.btn-primary');
+          if (addButton) {
+            const rect = addButton.getBoundingClientRect();
+            const computedStyle = getComputedStyle(addButton);
+            console.log('Zur Liste hinzufügen button width:', rect.width);
+            console.log('Zur Liste hinzufügen button margin-left:', computedStyle.marginLeft);
+            console.log('Zur Liste hinzufügen button padding-left:', computedStyle.paddingLeft);
+          }
+          const selectAllButton = document.querySelector('.contact-list button.btn-secondary');
+          if (selectAllButton) {
+            const rect = selectAllButton.getBoundingClientRect();
+            const computedStyle = getComputedStyle(selectAllButton);
+            console.log('Alle auswählen button width:', rect.width);
+            console.log('Alle auswählen button margin-left:', computedStyle.marginLeft);
+          }
+          const deleteButton = document.querySelector('.contact-list button.btn-primary');
+          if (deleteButton) {
+            const rect = deleteButton.getBoundingClientRect();
+            const computedStyle = getComputedStyle(deleteButton);
+            console.log('Auswahl löschen button width:', rect.width);
+            console.log('Auswahl löschen button margin-left:', computedStyle.marginLeft);
+          }
+          const contactForm = document.querySelector('.contact-form');
+          if (contactForm) {
+            const rect = contactForm.getBoundingClientRect();
+            const computedStyle = getComputedStyle(contactForm);
+            console.log('Contact-form width:', rect.width);
+            console.log('Contact-form padding-left:', computedStyle.paddingLeft);
+          }
+          const contactList = document.querySelector('.contact-list');
+          if (contactList) {
+            const rect = contactList.getBoundingClientRect();
+            console.log('Contact-list width:', rect.width);
+          }
         }, [contacts, formData]);
 
         const handleChange = (e) => {
@@ -268,14 +348,16 @@
         return (
           <>
             <div className="contact-form">
-              <div className="flex justify-between items-center mb-4">
+              <div className="mb-4">
                 <h1>Kontakt:</h1>
-                <button
-                  onClick={handleClearForm}
-                  className="btn-secondary"
-                >
-                  Neu
-                </button>
+                <div style={{ marginTop: '0.5rem' }}>
+                  <button
+                    onClick={handleClearForm}
+                    className="btn-secondary btn-full"
+                  >
+                    Neu
+                  </button>
+                </div>
               </div>
               {error && <p className="error">{error}</p>}
               <div className="form-scrollable">
@@ -307,35 +389,38 @@
               </div>
               <button
                 onClick={handleAddToList}
-                className="mt-6 w-full btn-primary"
+                className="mt-6 btn-primary btn-full"
               >
                 {editingContactId ? 'Änderung speichern' : 'Zur Liste hinzufügen'}
               </button>
             </div>
             <div className="contact-list">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center">
-                  <h1>Liste von Kontakten</h1>
-                  <button
-                    onClick={handleSelectAll}
-                    className="ml-4 btn-secondary"
-                    disabled={contacts.length === 0}
-                  >
-                    Alle auswählen
-                  </button>
+              <div className="mb-4">
+                <h1>Liste von Kontakten</h1>
+                <div style={{ marginTop: '24px' }}>
+                  <div className="flex justify-between items-center">
+                    <button
+                      onClick={handleSelectAll}
+                      className="btn-secondary"
+                      disabled={contacts.length === 0}
+                    >
+                      {selectedContacts.length === contacts.length && contacts.length > 0 ? 'Alle abwählen' : 'Alle auswählen'}
+                    </button>
+                    <div style={{ flexGrow: 1 }}></div>
+                    <button
+                      onClick={handleDeleteSelected}
+                      className="btn-primary"
+                      disabled={selectedContacts.length === 0}
+                    >
+                      Auswahl löschen
+                    </button>
+                  </div>
                 </div>
-                <button
-                  onClick={handleDeleteSelected}
-                  className="btn-primary"
-                  disabled={selectedContacts.length === 0}
-                >
-                  Löschen
-                </button>
               </div>
               <div className="list-scrollable">
                 <ul>
                   {contacts.map(contact => (
-                    <li key={contact.id}>
+                    <li key={contact.id} className="flex items-center">
                       <input
                         type="checkbox"
                         checked={selectedContacts.includes(contact.id)}
@@ -343,28 +428,30 @@
                         className="mr-2"
                       />
                       <span>{contact.displayname}</span>
-                      <svg
-                        className="edit-icon w-3 h-3 text-blue-500"
-                        onClick={() => handleEditContact(contact)}
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414 9 16l.586-2.828L17.414 5.586z"
-                        />
-                      </svg>
+                      <div className="edit-icon-container">
+                        <svg
+                          className="edit-icon"
+                          onClick={() => handleEditContact(contact)}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414 9 16l.586-2.828L17.414 5.586z"
+                          />
+                        </svg>
+                      </div>
                     </li>
                   ))}
                 </ul>
               </div>
               <button
                 onClick={handleSubmit}
-                className="mt-4 w-full btn-primary"
+                className="mt-4 btn-primary btn-full"
                 disabled={contacts.length === 0}
               >
                 Senden
