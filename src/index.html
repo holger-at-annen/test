@@ -15,6 +15,9 @@
       border-radius: 0.5rem;
       max-width: 600px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      min-height: calc(100vh - 2rem);
+      display: flex;
+      flex-direction: column;
     }
     .contact-list {
       background: white;
@@ -22,6 +25,9 @@
       border-radius: 0.5rem;
       max-width: 400px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      min-height: calc(100vh - 2rem);
+      display: flex;
+      flex-direction: column;
     }
     .contact-form h1, .contact-list h1 {
       font-size: 1.5rem;
@@ -47,23 +53,28 @@
       border: 1px solid #ccc;
       border-radius: 0.25rem;
     }
+    .form-scrollable {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 144px; /* ~3 rows at 48px each */
+    }
+    .list-scrollable {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 120px; /* ~3 rows at 40px each */
+    }
     .contact-form button {
       padding: 0.5rem;
-      background: #3b82f6;
-      color: white;
       border-radius: 0.25rem;
       cursor: pointer;
-    }
-    .contact-form button:hover {
-      background: #2563eb;
     }
     .contact-form .error {
       color: red;
       margin-bottom: 1rem;
     }
     .contact-list ul {
-      max-height: 500px;
-      overflow-y: auto;
+      margin: 0;
+      padding: 0;
     }
     .contact-list li {
       display: flex;
@@ -77,6 +88,32 @@
     .contact-list .edit-icon {
       cursor: pointer;
       margin-left: 1rem;
+    }
+    .btn-primary {
+      background: #3b82f6;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.25rem;
+    }
+    .btn-primary:hover {
+      background: #2563eb;
+    }
+    .btn-primary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: #22c55e;
+      color: white;
+      padding: 0.5rem 1.5rem;
+      border-radius: 0.25rem;
+    }
+    .btn-secondary:hover {
+      background: #16a34a;
+    }
+    .btn-secondary:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
     }
   </style>
   <script src="/env.js"></script>
@@ -235,42 +272,42 @@
                 <h1>Kontakt:</h1>
                 <button
                   onClick={handleClearForm}
-                  className="bg-green-500 hover:bg-green-600 text-white py-1 px-6 rounded-lg"
+                  className="btn-secondary"
                 >
                   Neu
                 </button>
               </div>
               {error && <p className="error">{error}</p>}
+              <div className="form-scrollable">
+                <h2>Bezeichnung:</h2>
+                {renderInput('Vorname:', 'givenname')}
+                {renderInput('Nachname:', 'sn')}
+                {renderInput('Firma:', 'company')}
+                {renderInput('Anzeigename:', 'displayname', 'Erforderlich')}
+                {renderInput('Webseite:', 'url')}
 
-              <h2>Bezeichnung:</h2>
-              {renderInput('Vorname:', 'givenname')}
-              {renderInput('Nachname:', 'sn')}
-              {renderInput('Firma:', 'company')}
-              {renderInput('Anzeigename:', 'displayname', 'Erforderlich')}
-              {renderInput('Webseite:', 'url')}
+                <h2>Informationen:</h2>
+                {renderInput('Titel:', 'title')}
+                {renderInput('Position:', 'position')}
+                {renderInput('Abteilung:', 'department')}
+                {renderInput('Beschreibung:', 'description')}
 
-              <h2>Informationen:</h2>
-              {renderInput('Titel:', 'title')}
-              {renderInput('Position:', 'position')}
-              {renderInput('Abteilung:', 'department')}
-              {renderInput('Beschreibung:', 'description')}
+                <h2>Kontaktmöglichkeiten:</h2>
+                {renderInput('E-Mail:', 'email')}
+                {renderInput('Telefonnummer:', 'telephonenumber')}
+                {renderInput('Handynummer:', 'mobile')}
+                {renderInput('Private Telefonnummer:', 'homephone')}
 
-              <h2>Kontaktmöglichkeiten:</h2>
-              {renderInput('E-Mail:', 'email')}
-              {renderInput('Telefonnummer:', 'telephonenumber')}
-              {renderInput('Handynummer:', 'mobile')}
-              {renderInput('Private Telefonnummer:', 'homephone')}
-
-              <h2>Adresse:</h2>
-              {renderInput('Straße:', 'street')}
-              {renderInput('PLZ:', 'postalcode')}
-              {renderInput('Ort:', 'city')}
-              {renderInput('Bundesland:', 'state')}
-              {renderInput('Land:', 'country')}
-
+                <h2>Adresse:</h2>
+                {renderInput('Straße:', 'street')}
+                {renderInput('PLZ:', 'postalcode')}
+                {renderInput('Ort:', 'city')}
+                {renderInput('Bundesland:', 'state')}
+                {renderInput('Land:', 'country')}
+              </div>
               <button
                 onClick={handleAddToList}
-                className="mt-6 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+                className="mt-6 w-full btn-primary"
               >
                 {editingContactId ? 'Änderung speichern' : 'Zur Liste hinzufügen'}
               </button>
@@ -281,7 +318,7 @@
                   <h1>Liste von Kontakten</h1>
                   <button
                     onClick={handleSelectAll}
-                    className="ml-4 bg-gray-500 hover:bg-gray-600 text-white py-1 px-3 rounded-lg"
+                    className="ml-4 btn-secondary"
                     disabled={contacts.length === 0}
                   >
                     Alle auswählen
@@ -289,43 +326,45 @@
                 </div>
                 <button
                   onClick={handleDeleteSelected}
-                  className="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-lg"
+                  className="btn-primary"
                   disabled={selectedContacts.length === 0}
                 >
                   Löschen
                 </button>
               </div>
-              <ul>
-                {contacts.map(contact => (
-                  <li key={contact.id}>
-                    <input
-                      type="checkbox"
-                      checked={selectedContacts.includes(contact.id)}
-                      onChange={() => handleSelectContact(contact.id)}
-                      className="mr-2"
-                    />
-                    <span>{contact.displayname}</span>
-                    <svg
-                      className="edit-icon w-4 h-4 text-blue-500"
-                      onClick={() => handleEditContact(contact)}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414 9 16l.586-2.828L17.414 5.586z"
+              <div className="list-scrollable">
+                <ul>
+                  {contacts.map(contact => (
+                    <li key={contact.id}>
+                      <input
+                        type="checkbox"
+                        checked={selectedContacts.includes(contact.id)}
+                        onChange={() => handleSelectContact(contact.id)}
+                        className="mr-2"
                       />
-                    </svg>
-                  </li>
-                ))}
-              </ul>
+                      <span>{contact.displayname}</span>
+                      <svg
+                        className="edit-icon w-3 h-3 text-blue-500"
+                        onClick={() => handleEditContact(contact)}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15.414 9 16l.586-2.828L17.414 5.586z"
+                        />
+                      </svg>
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <button
                 onClick={handleSubmit}
-                className="mt-4 w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+                className="mt-4 w-full btn-primary"
                 disabled={contacts.length === 0}
               >
                 Senden
