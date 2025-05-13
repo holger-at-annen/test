@@ -347,33 +347,26 @@
         };
 
         const handleSend = () => {
+          if (contacts.length === 0) {
+            setError('Keine Kontakte zum Senden.');
+            console.log('Error: No contacts to send');
+            return;
+          }
+
+          console.log('Sending contacts:', contacts);
           const receiverEmail = window.ENV?.RECEIVER_EMAIL && window.ENV.RECEIVER_EMAIL !== '' 
             ? window.ENV.RECEIVER_EMAIL 
-            : 'receiver@example.com';
-          const subject = encodeURIComponent('Kontakte');
-          const body = contacts.map(contact => {
-            return [
-              `Vorname: ${contact.givenname || ''}`,
-              `Nachname: ${contact.sn || ''}`,
-              `Anzeigename: ${contact.displayname || ''}`,
-              `Titel: ${contact.title || ''}`,
-              `Position: ${contact.position || ''}`,
-              `Abteilung: ${contact.department || ''}`,
-              `E-Mail: ${contact.email || ''}`,
-              `Telefonnummer: ${contact.telephonenumber || ''}`,
-              `Handynummer: ${contact.mobile || ''}`,
-              `Straße: ${contact.street || ''}`,
-              `PLZ: ${contact.postalcode || ''}`,
-              `Ort: ${contact.city || ''}`,
-              `Bundesland: ${contact.state || ''}`,
-              `Land: ${contact.country || ''}`,
-              '---'
-            ].join('\n');
-          }).join('\n\n');
-          const encodedBody = encodeURIComponent(body);
-          const mailtoLink = `mailto:${receiverEmail}?subject=${subject}&body=${encodedBody}`;
-          window.location.href = mailtoLink;
-          console.log('Opening mailto link:', mailtoLink);
+            : 'dummy@example.com';
+          const subject = encodeURIComponent('Kontakt hinzufügen: Mehrere Kontakte');
+          const body = encodeURIComponent(
+            contacts.map(contact =>
+              `${contact.givenname};${contact.sn};${contact.company};${contact.displayname};${contact.email};` +
+              `${contact.telephonenumber};${contact.mobile};${contact.homephone};;${contact.city};${contact.street};` +
+              `${contact.postalcode};${contact.state};${contact.country};;;;;;${contact.title};${contact.position};` +
+              `${contact.department};${contact.description};;;${contact.url};;`
+            ).join('\n')
+          );
+          window.location.href = `mailto:${receiverEmail}?subject=${subject}&body=${body}`;
         };
 
         const renderInput = (label, name, placeholder = '') => (
