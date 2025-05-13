@@ -357,7 +357,11 @@
           const receiverEmail = window.ENV?.RECEIVER_EMAIL && window.ENV.RECEIVER_EMAIL !== '' 
             ? window.ENV.RECEIVER_EMAIL 
             : 'dummy@example.com';
-          const subject = encodeURIComponent('Kontakt hinzufügen: Mehrere Kontakte');
+          if (contacts.length === 1) {
+            const subject = encodeURIComponent('Kontakt hinzufügen: ${contact[0].displayname}');
+          } else {
+            const subject = encodeURIComponent('Kontakt hinzufügen: Mehrere Kontakte');
+          }
           const body = encodeURIComponent(
             contacts.map(contact =>
               `${contact.givenname};${contact.sn};${contact.company};${contact.displayname};${contact.email};` +
