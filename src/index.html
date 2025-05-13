@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Final Layout with Send Functionality</title>
+  <title>Final Layout with Updated Functionality</title>
   <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.22.9/babel.min.js"></script>
@@ -15,6 +15,7 @@
       width: 100%;
       height: 100vh;
       box-sizing: border-box;
+      overflow: hidden;
     }
     body {
       background-color: #f0f0f0;
@@ -28,11 +29,15 @@
       gap: 8px;
       max-width: 896px;
       min-width: 908px;
+      height: 100vh;
+      padding: 1rem;
+      box-sizing: border-box;
+      align-items: stretch;
     }
     .contact-form {
       background: white;
       width: 500px;
-      height: 600px;
+      max-height: 100%;
       padding: 1rem;
       border: 1px solid #ccc;
       box-sizing: border-box;
@@ -42,7 +47,7 @@
     .contact-list {
       background: white;
       width: 400px;
-      height: 600px;
+      max-height: 100%;
       padding: 1rem;
       border: 1px solid #ccc;
       box-sizing: border-box;
@@ -197,16 +202,20 @@
 
         React.useEffect(() => {
           console.log('Viewport width:', window.innerWidth);
+          console.log('Viewport height:', window.innerHeight);
           const rootDiv = document.getElementById('root');
           if (rootDiv) {
             const rect = rootDiv.getBoundingClientRect();
             console.log('Root container left:', rect.left);
             console.log('Root container right:', rect.right);
             console.log('Root container width:', rect.width);
+            console.log('Root container height:', rect.height);
             console.log('Root container computed style:', getComputedStyle(rootDiv));
             console.log('Centering check:', {
               expectedLeft: (window.innerWidth - rect.width) / 2,
-              actualLeft: rect.left
+              actualLeft: rect.left,
+              expectedTop: (window.innerHeight - rect.height) / 2,
+              actualTop: rect.top
             });
           }
           const contactFormDiv = document.querySelector('.contact-form');
@@ -215,7 +224,9 @@
             console.log('Root children layout:', {
               contactFormLeft: contactFormDiv.getBoundingClientRect().left,
               contactListLeft: contactListDiv.getBoundingClientRect().left,
-              sideBySide: contactListDiv.getBoundingClientRect().left > contactFormDiv.getBoundingClientRect().left
+              sideBySide: contactListDiv.getBoundingClientRect().left > contactFormDiv.getBoundingClientRect().left,
+              contactFormHeight: contactFormDiv.getBoundingClientRect().height,
+              contactListHeight: contactListDiv.getBoundingClientRect().height
             });
           }
         }, [contacts]);
@@ -252,6 +263,23 @@
           setErrorMessage('');
         };
 
+        const handleAddToListWithoutClear = () => {
+          if (!formData.displayname) {
+            setErrorMessage('Anzeigename ist erforderlich.');
+            return;
+          }
+          if (editingContactId) {
+            setContacts(contacts.map(contact =>
+              contact.id === editingContactId ? { ...formData, id: editingContactId } : contact
+            ));
+            setEditingContactId(null);
+          } else {
+            const newContact = { ...formData, id: Date.now() };
+            setContacts([...contacts, newContact]);
+          }
+          setErrorMessage('');
+        };
+
         const handleEditContact = (contact) => {
           setFormData(contact);
           setEditingContactId(contact.id);
@@ -280,8 +308,31 @@
         };
 
         const handleSend = () => {
-          console.log('Sending all contacts:', contacts);
-          alert('All contacts logged to console!');
+          const receiverEmail = 'receiver@example.com'; // Placeholder for process.env.RECEIVER_EMAIL
+          const subject = encodeURIComponent('Kontakte');
+          const body = contacts.map(contact => {
+            return [
+              `Vorname: ${contact.givenname || ''}`,
+              `Nachname: ${contact.sn || ''}`,
+              `Anzeigename: ${contact.displayname || ''}`,
+              `Titel: ${contact.title || ''}`,
+              `Position: ${contact.position || ''}`,
+              `Abteilung: ${contact.department || ''}`,
+              `E-Mail: ${contact.email || ''}`,
+              `Telefonnummer: ${contact.telephonenumber || ''}`,
+              `Handynummer: ${contact.mobile || ''}`,
+              `Straße: ${contact.street || ''}`,
+              `PLZ: ${contact.postalcode || ''}`,
+              `Ort: ${contact.city || ''}`,
+              `Bundesland: ${contact.state || ''}`,
+              `Land: ${contact.country || ''}`,
+              '---'
+            ].join('\n');
+          }).join('\n\n');
+          const encodedBody = encodeURIComponent(body);
+          const mailtoLink = `mailto:${receiverEmail}?subject=${subject}&body=${encodedBody}`;
+          window.location.href = mailtoLink;
+          console.log('Opening mailto link:', mailtoLink);
         };
 
         const renderInput = (label, name, value) => (
@@ -331,9 +382,14 @@
                 {renderInput('Bundesland:', 'state', formData.state)}
                 {renderInput('Land:', 'country', formData.country)}
               </div>
-              <button onClick={handleAddToList} className="mt-4 btn-primary btn-full">
-                {editingContactId ? 'Änderung speichern' : 'Zur Liste hinzufügen'}
-              </button>
+              <div className="mt-4 flex flex-col gap-2">
+                <button onClick={handleAddToListWithoutClear} className="btn-primary btn-full">
+                  Zur Liste hinzufügen ohne löschen
+                </button>
+                <button onClick={handleAddToList} className="btn-primary btn-full">
+                  {editingContactId ? 'Änderung speichern' : 'Zur Liste hinzufügen'}
+                </button>
+              </div>
             </div>
             <div className="contact-list">
               <div className="mb-4">
