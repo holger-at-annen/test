@@ -425,13 +425,16 @@
                 {renderInput('Bundesland:', 'state')}
                 {renderInput('Land:', 'country')}
               </div>
-              <div className="mt-4 flex flex-col" style={{ gap: '0.5rem' }}>
-                <button
-                  onClick={handleAddToListWithoutClear}
-                  className="btn-primary btn-full"
-                >
-                  Zur Liste hinzufügen ohne löschen
-                </button>
+              <div className="mt-4">
+                {!editingContactId && (
+                  <button
+                    onClick={handleAddToListWithoutClear}
+                    className="btn-primary btn-full"
+                    style={{ marginBottom: '1rem' }}
+                  >
+                    Zur Liste hinzufügen ohne löschen
+                  </button>
+                )}
                 <button
                   onClick={handleAddToList}
                   className="btn-primary btn-full"
